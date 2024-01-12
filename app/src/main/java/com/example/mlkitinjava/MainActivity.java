@@ -3,6 +3,7 @@ package com.example.mlkitinjava;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
@@ -16,6 +17,12 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
+import android.graphics.Paint;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -41,7 +48,8 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
 
     private PreviewView cameraPv;
-    private TextView res;
+    private TextView res , resInv;
+    private AppCompatImageView imageView;
 
     private ProcessCameraProvider cameraProvider;
     private Preview previewUseCase;
@@ -121,7 +129,21 @@ public class MainActivity extends AppCompatActivity {
         analysingUseCase.setAnalyzer(cameraExecutor, new ImageAnalysis.Analyzer() {
             @Override
             public void analyze(@NonNull ImageProxy image) {
-                processImageProxy(barcodeScanner, image);
+                Log.d("ABHI", "analyze: called");
+                Bitmap bitmap = BitmapUtils.getBitmap(image);
+
+                Bitmap bitmap1 = changeColor(bitmap , Color.WHITE , Color.BLACK);
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//
+//                        imageView.setImageBitmap(bitmap1);
+//                    }
+//                });
+//                inverse(bitmap , imageView);
+//                processImageProxy(barcodeScanner, image);
+                processInverseImageProxy(barcodeScanner , image , bitmap1);
+//                image.close();
             }
         });
 
@@ -136,6 +158,34 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+    private Bitmap changeColor(Bitmap src, int colorToReplace, int colorThatWillReplace) {
+//        int width = src.getWidth();
+//        int height = src.getHeight();
+//        int[] pixels = new int[width * height];
+//        // get pixel array from source
+//        src.getPixels(pixels, 0, width, 0, 0, width, height);
+//
+//        Bitmap bmOut = Bitmap.createBitmap(width, height, src.getConfig());
+//
+//        int A, R, G, B;
+//        int pixel;
+
+        // iteration through pixels
+        for (int x = 0; x < src.getWidth(); ++x) {
+            for (int y = 0; y < src.getHeight(); ++y) {
+                int color = src.getPixel(x, y);
+                int r = Color.red(color);
+                int g = Color.green(color);
+                int b = Color.blue(color);
+                int avg = (r + g + b) / 3;
+                int newColor = Color.argb(255, 255 - avg, 255 - avg, 255 - avg);
+                src.setPixel(x, y, newColor);
+            }
+        }
+//        bmOut.setPixels(pixels, 0, width, 0, 0, width, height);
+        return src;
+    }
     @SuppressLint("UnsafeOptInUsageError")
     private void processImageProxy(BarcodeScanner barcodeScanner, ImageProxy imageproxy) {
 
@@ -146,6 +196,34 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(@NonNull List<Barcode> barcodes) {
                 for(Barcode barcode : barcodes){
                     res.setText(barcode.getRawValue());
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.d("ABHI", "onFailure: barcode scan");
+            }
+        }).addOnCompleteListener(new OnCompleteListener<List<Barcode>>() {
+            @Override
+            public void onComplete(@NonNull Task<List<Barcode>> task) {
+                imageproxy.close();
+            }
+        });
+
+    }
+
+    @SuppressLint("UnsafeOptInUsageError")
+    private void processInverseImageProxy(BarcodeScanner barcodeScanner, ImageProxy imageproxy , Bitmap bitmap) {
+
+//        InputImage inputImage = InputImage.fromMediaImage(imageproxy.getImage() , imageproxy.getImageInfo().getRotationDegrees());
+
+        InputImage inputImage = InputImage.fromBitmap(bitmap , imageproxy.getImageInfo().getRotationDegrees());
+
+        barcodeScanner.process(inputImage).addOnSuccessListener(new OnSuccessListener<List<Barcode>>() {
+            @Override
+            public void onSuccess(@NonNull List<Barcode> barcodes) {
+                for(Barcode barcode : barcodes){
+                    resInv.setText(barcode.getRawValue());
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -186,6 +264,8 @@ public class MainActivity extends AppCompatActivity {
     private void createView() {
         res = findViewById(R.id.res);
         cameraPv = findViewById(R.id.camera_pv);
+        imageView = findViewById(R.id.imagview);
+        resInv = findViewById(R.id.resInverse);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.P)
@@ -213,4 +293,25 @@ public class MainActivity extends AppCompatActivity {
         Log.d("ABHI", "isCameraPermissionGranted: " + ans);
         return ans;
     }
+
+
+
+    private void inverse(Bitmap sourceBitmap , AppCompatImageView imageView){
+
+        Bitmap resultBitmap = Bitmap.createBitmap(sourceBitmap, 0, 0,
+                sourceBitmap.getWidth() - 1, sourceBitmap.getHeight() - 1);
+        Paint p = new Paint();
+        ColorFilter filter = new LightingColorFilter(Color.DKGRAY, 1);
+        p.setColorFilter(filter);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                imageView.setImageBitmap(resultBitmap);
+
+                Canvas canvas = new Canvas(resultBitmap);
+                canvas.drawBitmap(resultBitmap, 0, 0, p);
+            }
+        });
+    }
+
 }

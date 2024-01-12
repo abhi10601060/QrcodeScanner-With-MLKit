@@ -8,7 +8,7 @@
 
     <androidx.camera.view.PreviewView
         android:layout_width="match_parent"
-        android:layout_height="600dp"
+        android:layout_height="200dp"
         android:id="@+id/camera_pv"
         />
 
@@ -22,7 +22,7 @@
         android:textSize="18sp"
         android:textStyle="bold"
         android:id="@+id/res"
-        android:textColor="@color/black"/>
+        android:textColor="@color/white"/>
 
 
     <TextView
@@ -33,5 +33,25 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_below="@+id/res"
+        android:layout_marginTop="30sp"
+        android:id="@+id/imagview"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imagview"
+        android:layout_marginTop="20dp"
+        android:text="ghfhgfgje"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:id="@+id/resInverse"
+        android:textColor="@color/white"/>
 
 </RelativeLayout>
