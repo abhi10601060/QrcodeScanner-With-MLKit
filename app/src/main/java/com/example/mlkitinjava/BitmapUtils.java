@@ -216,6 +216,10 @@ public class BitmapUtils {
             unpackPlane(yuv420888planes[2], width, height, out, imageSize, 2);
         }
 
+        for(int i =0 ; i<out.length ; i++){
+            out[i] = (byte) (out[i] ^ 0xff);
+        }
+
         return ByteBuffer.wrap(out);
     }
 

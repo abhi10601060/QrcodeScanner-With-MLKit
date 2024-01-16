@@ -26,6 +26,7 @@ import android.graphics.Paint;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
 import android.view.Surface;
 import android.widget.TextView;
 
@@ -122,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
         analysingUseCase = new ImageAnalysis.Builder()
                 .setTargetRotation(Surface.ROTATION_0)
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build();
 
         Executor cameraExecutor = Executors.newSingleThreadExecutor();
@@ -132,17 +134,17 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("ABHI", "analyze: called");
                 Bitmap bitmap = BitmapUtils.getBitmap(image);
 
-                Bitmap bitmap1 = changeColor(bitmap , Color.WHITE , Color.BLACK);
-//                runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//
-//                        imageView.setImageBitmap(bitmap1);
-//                    }
-//                });
+//                Bitmap bitmap1 = changeColor(bitmap , Color.WHITE , Color.BLACK);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        imageView.setImageBitmap(bitmap);
+                    }
+                });
 //                inverse(bitmap , imageView);
 //                processImageProxy(barcodeScanner, image);
-                processInverseImageProxy(barcodeScanner , image , bitmap1);
+                processInverseImageProxy(barcodeScanner , image , bitmap);
 //                image.close();
             }
         });
